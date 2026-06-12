@@ -1,0 +1,907 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Bakery QA Document Control - Planning Prototype</title>
+  <style>
+    :root {
+      --bg: #f5f7f6;
+      --surface: #ffffff;
+      --surface-2: #eef3f1;
+      --text: #17211d;
+      --muted: #63716a;
+      --line: #d7dfdb;
+      --brand: #176b5b;
+      --brand-2: #0f4f85;
+      --warn: #a15c00;
+      --danger: #a93535;
+      --ok: #28784d;
+      --shadow: 0 18px 50px rgba(18, 38, 32, .12);
+    }
+
+    [data-theme="dark"] {
+      --bg: #111614;
+      --surface: #19201d;
+      --surface-2: #202a26;
+      --text: #edf4f1;
+      --muted: #a5b4ad;
+      --line: #34423c;
+      --brand: #4db199;
+      --brand-2: #78aee2;
+      --warn: #e2a340;
+      --danger: #e07979;
+      --ok: #79c99e;
+      --shadow: 0 18px 50px rgba(0, 0, 0, .32);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--text);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      line-height: 1.45;
+    }
+
+    button, input, select { font: inherit; }
+    button {
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--text);
+      min-height: 36px;
+      padding: 0 12px;
+      cursor: pointer;
+    }
+    button:hover { border-color: var(--brand); }
+    .primary {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #fff;
+    }
+    [data-theme="dark"] .primary { color: #07110f; }
+    .ghost {
+      background: transparent;
+    }
+    .danger {
+      color: var(--danger);
+      border-color: color-mix(in srgb, var(--danger) 45%, var(--line));
+    }
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+    }
+    header {
+      height: 64px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      gap: 16px;
+      position: sticky;
+      top: 0;
+      z-index: 5;
+    }
+    .brand {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      min-width: 240px;
+    }
+    .mark {
+      width: 36px;
+      height: 36px;
+      border-radius: 6px;
+      display: grid;
+      place-items: center;
+      background: var(--brand);
+      color: white;
+      font-weight: 800;
+    }
+    [data-theme="dark"] .mark { color: #07110f; }
+    .brand strong { display: block; font-size: 15px; }
+    .brand span { display: block; color: var(--muted); font-size: 12px; }
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .switcher {
+      display: inline-flex;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      overflow: hidden;
+      background: var(--surface-2);
+    }
+    .switcher button {
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      min-width: 112px;
+    }
+    .switcher button.active {
+      background: var(--surface);
+      color: var(--brand);
+      font-weight: 700;
+      box-shadow: inset 0 -2px 0 var(--brand);
+    }
+    .layout {
+      display: grid;
+      grid-template-columns: 250px minmax(0, 1fr);
+      min-height: calc(100vh - 64px);
+    }
+    aside {
+      border-right: 1px solid var(--line);
+      background: var(--surface);
+      padding: 18px 14px;
+    }
+    .side-title {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      font-weight: 800;
+      margin: 8px 10px;
+    }
+    .folder {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      border: 0;
+      background: transparent;
+      padding: 9px 10px;
+      margin: 2px 0;
+      text-align: left;
+    }
+    .folder.active {
+      background: var(--surface-2);
+      color: var(--brand);
+      font-weight: 750;
+    }
+    .folder small { color: var(--muted); }
+    main {
+      padding: 22px;
+      min-width: 0;
+    }
+    .page-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      margin-bottom: 18px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 25px;
+      letter-spacing: 0;
+    }
+    .subhead {
+      margin: 4px 0 0;
+      color: var(--muted);
+      max-width: 780px;
+    }
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .metrics {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(150px, 1fr));
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .metric {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .metric span {
+      color: var(--muted);
+      display: block;
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+    .metric strong {
+      display: block;
+      font-size: 24px;
+      margin-top: 4px;
+    }
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .panel-head {
+      min-height: 58px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+      background: var(--surface);
+    }
+    .filters {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .filters input, .filters select {
+      height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--text);
+      padding: 0 10px;
+      min-width: 180px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 13px 14px;
+      border-bottom: 1px solid var(--line);
+      vertical-align: middle;
+      text-align: left;
+    }
+    th {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      font-weight: 800;
+      background: var(--surface-2);
+    }
+    tr:hover td { background: color-mix(in srgb, var(--surface-2) 65%, transparent); }
+    .doc-title {
+      font-weight: 780;
+      display: block;
+    }
+    .doc-meta {
+      color: var(--muted);
+      font-size: 12px;
+      display: block;
+      margin-top: 2px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 0 8px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--surface);
+      font-size: 12px;
+      font-weight: 750;
+      white-space: nowrap;
+    }
+    .current { color: var(--ok); border-color: color-mix(in srgb, var(--ok) 45%, var(--line)); }
+    .review { color: var(--warn); border-color: color-mix(in srgb, var(--warn) 45%, var(--line)); }
+    .expired { color: var(--danger); border-color: color-mix(in srgb, var(--danger) 45%, var(--line)); }
+    .actions {
+      display: flex;
+      gap: 7px;
+      flex-wrap: wrap;
+    }
+    .actions button {
+      min-height: 32px;
+      padding: 0 9px;
+      font-size: 13px;
+    }
+    .viewer-layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 320px;
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .preview-card {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      overflow: hidden;
+    }
+    .preview-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--line);
+    }
+    .pdf-page {
+      max-width: 720px;
+      min-height: 720px;
+      margin: 18px auto;
+      background: #fff;
+      color: #202620;
+      border: 1px solid #d9dedb;
+      box-shadow: 0 14px 32px rgba(0,0,0,.12);
+      padding: 54px;
+    }
+    .pdf-page h2 {
+      margin: 0 0 12px;
+      font-size: 26px;
+      letter-spacing: 0;
+      border-bottom: 2px solid #1d6b5c;
+      padding-bottom: 10px;
+    }
+    .pdf-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 8px 18px;
+      font-size: 13px;
+      margin: 18px 0 24px;
+    }
+    .pdf-section {
+      margin: 18px 0;
+    }
+    .pdf-section h3 {
+      font-size: 15px;
+      margin: 0 0 8px;
+    }
+    .pdf-section p, .pdf-section li {
+      font-size: 13px;
+    }
+    .right-stack {
+      display: grid;
+      gap: 16px;
+      align-content: start;
+    }
+    .mini-panel {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .mini-panel h2 {
+      font-size: 16px;
+      margin: 0 0 10px;
+    }
+    .timeline {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+    .timeline li {
+      border-left: 3px solid var(--line);
+      padding-left: 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .timeline strong {
+      color: var(--text);
+      display: block;
+    }
+    .user-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+    .user-doc {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+    .user-doc h2 {
+      font-size: 16px;
+      margin: 0;
+    }
+    .user-doc p {
+      color: var(--muted);
+      margin: 0;
+      font-size: 13px;
+    }
+    .modal {
+      position: fixed;
+      inset: 0;
+      display: none;
+      background: rgba(8, 13, 11, .64);
+      z-index: 20;
+      padding: 28px;
+    }
+    .modal.open {
+      display: grid;
+      place-items: center;
+    }
+    .modal-body {
+      width: min(1180px, 100%);
+      max-height: calc(100vh - 56px);
+      overflow: auto;
+      border-radius: 8px;
+      background: var(--bg);
+      box-shadow: var(--shadow);
+      border: 1px solid var(--line);
+    }
+    .modal-head {
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      background: var(--surface);
+      border-bottom: 1px solid var(--line);
+      padding: 12px 14px;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+    }
+    .hidden { display: none !important; }
+    .note {
+      margin-top: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 14px;
+      background: var(--surface-2);
+      color: var(--muted);
+      font-size: 14px;
+    }
+    .flow {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+      margin-top: 16px;
+    }
+    .flow div {
+      background: var(--surface);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      min-height: 106px;
+    }
+    .flow strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+    .flow span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    @media (max-width: 1040px) {
+      .metrics { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .viewer-layout { grid-template-columns: 1fr; }
+      .user-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .flow { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
+    @media (max-width: 760px) {
+      header { height: auto; align-items: flex-start; padding: 14px; }
+      .layout { grid-template-columns: 1fr; }
+      aside { border-right: 0; border-bottom: 1px solid var(--line); }
+      .brand { min-width: 0; }
+      .page-head { display: grid; }
+      .toolbar { justify-content: flex-start; }
+      .metrics, .user-grid, .flow { grid-template-columns: 1fr; }
+      table, thead, tbody, th, td, tr { display: block; }
+      thead { display: none; }
+      tr { border-bottom: 1px solid var(--line); }
+      td { border: 0; padding: 8px 14px; }
+      td::before {
+        content: attr(data-label);
+        display: block;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        margin-bottom: 2px;
+      }
+      .pdf-page { min-height: 620px; padding: 28px; margin: 12px; }
+      .pdf-grid { grid-template-columns: 1fr; }
+      .modal { padding: 10px; }
+    }
+
+    @media print {
+      body * { visibility: hidden; }
+      .printable, .printable * { visibility: visible; }
+      .printable {
+        position: absolute;
+        inset: 0;
+      }
+      .preview-toolbar, header, aside, .right-stack, .modal-head { display: none !important; }
+      .pdf-page { box-shadow: none; border: 0; margin: 0; max-width: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app" data-theme="light">
+    <header>
+      <div class="brand">
+        <div class="mark">QA</div>
+        <div>
+          <strong>Bakery Document Control</strong>
+          <span>Planning prototype for SOPs, forms, checklists, and training records</span>
+        </div>
+      </div>
+      <div class="top-actions">
+        <div class="switcher" aria-label="Interface switcher">
+          <button class="active" data-view="admin">QA Admin</button>
+          <button data-view="user">Regular User</button>
+          <button data-view="plan">Build Plan</button>
+        </div>
+        <button id="themeButton" title="Toggle dark mode">Dark</button>
+      </div>
+    </header>
+
+    <div class="layout">
+      <aside>
+        <div class="side-title">Folders</div>
+        <button class="folder active"><span>All Current Documents</span><small>24</small></button>
+        <button class="folder"><span>Sanitation</span><small>7</small></button>
+        <button class="folder"><span>Maintenance</span><small>5</small></button>
+        <button class="folder"><span>Production</span><small>8</small></button>
+        <button class="folder"><span>Packaging</span><small>4</small></button>
+        <button class="folder"><span>Training Records</span><small>9</small></button>
+        <div class="side-title">Admin Queues</div>
+        <button class="folder"><span>Review Reminders</span><small>6</small></button>
+        <button class="folder"><span>Archived Versions</span><small>38</small></button>
+        <button class="folder"><span>Draft Uploads</span><small>2</small></button>
+        <button class="folder ghost" id="newFolderButton">Create Folder</button>
+      </aside>
+
+      <main>
+        <section id="adminView">
+          <div class="page-head">
+            <div>
+              <h1>QA Admin Document Library</h1>
+              <p class="subhead">QA can create folders, upload documents, publish new versions, archive older versions, attach review reminders, and control what regular users can view.</p>
+            </div>
+            <div class="toolbar">
+              <button id="uploadButton" class="primary">Upload Document</button>
+              <button id="versionButton">Publish New Version</button>
+              <button id="reminderButton">Add Reminder</button>
+            </div>
+          </div>
+
+          <div class="metrics">
+            <div class="metric"><span>Current Documents</span><strong>24</strong></div>
+            <div class="metric"><span>Due This Month</span><strong>6</strong></div>
+            <div class="metric"><span>Archived Versions</span><strong>38</strong></div>
+            <div class="metric"><span>Folders</span><strong>6</strong></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head">
+              <div class="filters">
+                <input aria-label="Search documents" placeholder="Search SOPs, forms, records">
+                <select aria-label="Status filter">
+                  <option>All statuses</option>
+                  <option>Current</option>
+                  <option>Review due</option>
+                  <option>Expired</option>
+                </select>
+                <select aria-label="Document type filter">
+                  <option>All document types</option>
+                  <option>SOP</option>
+                  <option>Form</option>
+                  <option>Checklist</option>
+                  <option>Training record</option>
+                </select>
+              </div>
+              <button>Export Index</button>
+            </div>
+            <table>
+              <thead>
+                <tr>
+                  <th>Document</th>
+                  <th>Folder</th>
+                  <th>Version</th>
+                  <th>Review</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td data-label="Document">
+                    <span class="doc-title">SOP-QA-014 Allergen Changeover Verification</span>
+                    <span class="doc-meta">PDF · SOP · owner: QA Manager</span>
+                  </td>
+                  <td data-label="Folder">Sanitation</td>
+                  <td data-label="Version">v4.0</td>
+                  <td data-label="Review">Jun 28, 2026</td>
+                  <td data-label="Status"><span class="badge review">Review due</span></td>
+                  <td data-label="Actions">
+                    <div class="actions">
+                      <button class="viewDoc">View</button>
+                      <button>New Version</button>
+                      <button>Archive</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td data-label="Document">
+                    <span class="doc-title">FORM-PRD-022 Oven Temperature Log</span>
+                    <span class="doc-meta">PDF · Form · owner: Production QA</span>
+                  </td>
+                  <td data-label="Folder">Production</td>
+                  <td data-label="Version">v2.3</td>
+                  <td data-label="Review">Oct 15, 2026</td>
+                  <td data-label="Status"><span class="badge current">Current</span></td>
+                  <td data-label="Actions">
+                    <div class="actions">
+                      <button class="viewDoc">View</button>
+                      <button>New Version</button>
+                      <button>Archive</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td data-label="Document">
+                    <span class="doc-title">CHK-MNT-006 Metal Detector Daily Check</span>
+                    <span class="doc-meta">PDF · Checklist · owner: Maintenance Lead</span>
+                  </td>
+                  <td data-label="Folder">Maintenance</td>
+                  <td data-label="Version">v1.8</td>
+                  <td data-label="Review">May 20, 2026</td>
+                  <td data-label="Status"><span class="badge expired">Overdue</span></td>
+                  <td data-label="Actions">
+                    <div class="actions">
+                      <button class="viewDoc">View</button>
+                      <button>New Version</button>
+                      <button>Archive</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td data-label="Document">
+                    <span class="doc-title">TRN-QA-031 GMP Refresher Attendance Record</span>
+                    <span class="doc-meta">PDF · Training record · owner: QA Training</span>
+                  </td>
+                  <td data-label="Folder">Training Records</td>
+                  <td data-label="Version">v3.1</td>
+                  <td data-label="Review">Jan 12, 2027</td>
+                  <td data-label="Status"><span class="badge current">Current</span></td>
+                  <td data-label="Actions">
+                    <div class="actions">
+                      <button class="viewDoc">View</button>
+                      <button>New Version</button>
+                      <button>Archive</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="viewer-layout">
+            <div class="preview-card printable">
+              <div class="preview-toolbar">
+                <strong>Selected document preview</strong>
+                <div class="actions">
+                  <button class="viewDoc">Open Fullscreen</button>
+                  <button onclick="window.print()">Print</button>
+                  <button>Download PDF</button>
+                </div>
+              </div>
+              <article class="pdf-page">
+                <h2>SOP-QA-014 Allergen Changeover Verification</h2>
+                <div class="pdf-grid">
+                  <div><strong>Document Type:</strong> SOP</div>
+                  <div><strong>Current Version:</strong> v4.0</div>
+                  <div><strong>Effective Date:</strong> Jun 14, 2026</div>
+                  <div><strong>Review Due:</strong> Jun 28, 2026</div>
+                  <div><strong>Department:</strong> Sanitation</div>
+                  <div><strong>Approved By:</strong> QA Manager</div>
+                </div>
+                <div class="pdf-section">
+                  <h3>Purpose</h3>
+                  <p>Define the required verification steps after allergen changeover cleaning for bakery production lines, utensils, and adjacent staging areas.</p>
+                </div>
+                <div class="pdf-section">
+                  <h3>Procedure</h3>
+                  <ol>
+                    <li>Confirm previous production run and allergen profile before line release.</li>
+                    <li>Complete visual inspection of belts, hoppers, trays, scales, racks, and food-contact tools.</li>
+                    <li>Record swab results or QA verification initials where required by the product matrix.</li>
+                    <li>Escalate any residue, unlabeled ingredient, or incomplete cleaning record to QA before restart.</li>
+                  </ol>
+                </div>
+                <div class="pdf-section">
+                  <h3>Records</h3>
+                  <p>Attach the completed sanitation checklist and retain the approved record according to the QA retention schedule.</p>
+                </div>
+              </article>
+            </div>
+
+            <div class="right-stack">
+              <div class="mini-panel">
+                <h2>Version History</h2>
+                <ul class="timeline">
+                  <li><strong>v4.0 Current</strong> Published Jun 14, 2026 · visible to users</li>
+                  <li><strong>v3.2 Archived</strong> File retained for audit trail</li>
+                  <li><strong>v3.1 Archived</strong> File retained for audit trail</li>
+                </ul>
+              </div>
+              <div class="mini-panel">
+                <h2>Review Reminder</h2>
+                <p class="subhead">Reminder set for Jun 28, 2026. Notify QA Manager and Sanitation Supervisor 14 days before due date.</p>
+              </div>
+              <div class="mini-panel">
+                <h2>Permission Model</h2>
+                <p class="subhead">QA Admin: create, upload, publish, edit, archive, delete. Regular User: view current version, download, print.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="userView" class="hidden">
+          <div class="page-head">
+            <div>
+              <h1>Regular User Document Portal</h1>
+              <p class="subhead">This read-only interface shows only the published current version of each document. Archived filenames remain audit-only for QA admins.</p>
+            </div>
+            <div class="toolbar">
+              <button>Download Selected</button>
+              <button onclick="window.print()">Print</button>
+            </div>
+          </div>
+          <div class="user-grid">
+            <div class="user-doc">
+              <span class="badge review">Current PDF</span>
+              <h2>Allergen Changeover Verification</h2>
+              <p>Sanitation · SOP-QA-014 · v4.0 · review due Jun 28, 2026</p>
+              <div class="actions"><button class="viewDoc primary">View Document</button><button>Download</button><button onclick="window.print()">Print</button></div>
+            </div>
+            <div class="user-doc">
+              <span class="badge current">Current PDF</span>
+              <h2>Oven Temperature Log</h2>
+              <p>Production · FORM-PRD-022 · v2.3 · review due Oct 15, 2026</p>
+              <div class="actions"><button class="viewDoc primary">View Document</button><button>Download</button><button onclick="window.print()">Print</button></div>
+            </div>
+            <div class="user-doc">
+              <span class="badge expired">Needs QA Review</span>
+              <h2>Metal Detector Daily Check</h2>
+              <p>Maintenance · CHK-MNT-006 · v1.8 · review overdue</p>
+              <div class="actions"><button class="viewDoc primary">View Document</button><button>Download</button><button onclick="window.print()">Print</button></div>
+            </div>
+          </div>
+          <div class="note">Regular users cannot upload, edit folders, publish versions, archive files, delete files, or see old document contents.</div>
+        </section>
+
+        <section id="planView" class="hidden">
+          <div class="page-head">
+            <div>
+              <h1>Build Plan</h1>
+              <p class="subhead">Recommended phased path from this prototype to a real internal QA document management website.</p>
+            </div>
+          </div>
+          <div class="flow">
+            <div><strong>1. Design Approval</strong><span>Confirm admin dashboard, read-only portal, document preview, version history, and folder structure.</span></div>
+            <div><strong>2. Prototype App</strong><span>Build frontend with mock data, upload flow, modal PDF viewer, dark mode, and role-based navigation.</span></div>
+            <div><strong>3. Backend + Storage</strong><span>Add database tables for users, folders, documents, versions, reminders, and audit events. Store PDFs securely.</span></div>
+            <div><strong>4. Authentication</strong><span>Start with email/password or Google, then integrate Microsoft Entra ID / Active Directory for production if needed.</span></div>
+          </div>
+          <div class="panel" style="margin-top:16px">
+            <div class="panel-head"><strong>Core data model</strong></div>
+            <table>
+              <thead><tr><th>Entity</th><th>Purpose</th><th>Key Fields</th></tr></thead>
+              <tbody>
+                <tr><td data-label="Entity">Folder</td><td data-label="Purpose">Admin-created departments or categories</td><td data-label="Key Fields">name, parent folder, owner, visibility</td></tr>
+                <tr><td data-label="Entity">Document</td><td data-label="Purpose">Stable record users search for</td><td data-label="Key Fields">title, type, folder, current version, status</td></tr>
+                <tr><td data-label="Entity">Version</td><td data-label="Purpose">Every uploaded PDF revision</td><td data-label="Key Fields">version number, file URL, change notes, archived flag</td></tr>
+                <tr><td data-label="Entity">Reminder</td><td data-label="Purpose">Review scheduling and notifications</td><td data-label="Key Fields">due date, frequency, recipients, completed date</td></tr>
+                <tr><td data-label="Entity">Audit Event</td><td data-label="Purpose">Food safety and compliance traceability</td><td data-label="Key Fields">actor, action, timestamp, affected document</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="note">Recommended production stack: React or Next.js frontend, PostgreSQL database, object storage for PDF files, and Microsoft Entra ID / Active Directory authentication if the company already uses it.</div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <div class="modal" id="docModal" aria-hidden="true">
+    <div class="modal-body">
+      <div class="modal-head">
+        <strong>Fullscreen document preview</strong>
+        <div class="actions">
+          <button onclick="window.print()">Print</button>
+          <button>Download PDF</button>
+          <button id="closeModal">Close</button>
+        </div>
+      </div>
+      <div class="preview-card printable" style="border:0;border-radius:0">
+        <article class="pdf-page">
+          <h2>SOP-QA-014 Allergen Changeover Verification</h2>
+          <div class="pdf-grid">
+            <div><strong>Document Type:</strong> SOP</div>
+            <div><strong>Current Version:</strong> v4.0</div>
+            <div><strong>Effective Date:</strong> Jun 14, 2026</div>
+            <div><strong>Review Due:</strong> Jun 28, 2026</div>
+            <div><strong>Department:</strong> Sanitation</div>
+            <div><strong>Approved By:</strong> QA Manager</div>
+          </div>
+          <div class="pdf-section">
+            <h3>Scope</h3>
+            <p>This SOP applies to production lines, sanitation tools, ingredient staging zones, packaging contact surfaces, and shared utensils used after allergen-containing products.</p>
+          </div>
+          <div class="pdf-section">
+            <h3>Verification Checklist</h3>
+            <ol>
+              <li>Line clearance completed and documented.</li>
+              <li>Food-contact surfaces inspected with no visible residue.</li>
+              <li>QA swab or verification record attached when required.</li>
+              <li>Supervisor and QA initials completed before release.</li>
+            </ol>
+          </div>
+          <div class="pdf-section">
+            <h3>Revision Notes</h3>
+            <p>v4.0 adds staging-area verification and clarifies swab documentation requirements for high-risk allergen transitions.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const app = document.querySelector('.app');
+    const themeButton = document.getElementById('themeButton');
+    const views = {
+      admin: document.getElementById('adminView'),
+      user: document.getElementById('userView'),
+      plan: document.getElementById('planView')
+    };
+    document.querySelectorAll('[data-view]').forEach((button) => {
+      button.addEventListener('click', () => {
+        document.querySelectorAll('[data-view]').forEach((item) => item.classList.remove('active'));
+        button.classList.add('active');
+        Object.entries(views).forEach(([name, section]) => {
+          section.classList.toggle('hidden', name !== button.dataset.view);
+        });
+      });
+    });
+    themeButton.addEventListener('click', () => {
+      const next = app.dataset.theme === 'dark' ? 'light' : 'dark';
+      app.dataset.theme = next;
+      themeButton.textContent = next === 'dark' ? 'Light' : 'Dark';
+    });
+
+    const modal = document.getElementById('docModal');
+    document.querySelectorAll('.viewDoc').forEach((button) => {
+      button.addEventListener('click', () => {
+        modal.classList.add('open');
+        modal.setAttribute('aria-hidden', 'false');
+      });
+    });
+    document.getElementById('closeModal').addEventListener('click', () => {
+      modal.classList.remove('open');
+      modal.setAttribute('aria-hidden', 'true');
+    });
+    modal.addEventListener('click', (event) => {
+      if (event.target === modal) {
+        modal.classList.remove('open');
+        modal.setAttribute('aria-hidden', 'true');
+      }
+    });
+    document.getElementById('newFolderButton').addEventListener('click', () => {
+      alert('Design note: QA admin can create custom folders such as Sanitation, Maintenance, Production, Packaging, or any future department.');
+    });
+    document.getElementById('uploadButton').addEventListener('click', () => {
+      alert('Design note: upload flow will collect PDF file, document title, folder, type, owner, version number, effective date, and review reminder.');
+    });
+    document.getElementById('versionButton').addEventListener('click', () => {
+      alert('Design note: publishing a new version automatically archives the previous version and makes the latest PDF visible to regular users.');
+    });
+    document.getElementById('reminderButton').addEventListener('click', () => {
+      alert('Design note: reminders can be one-time, monthly, quarterly, annual, or custom, with QA recipients.');
+    });
+  </script>
+</body>
+</html>
